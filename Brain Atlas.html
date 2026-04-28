@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<!-- saved from url=(0053)file:///Users/nisargshah/Downloads/Brain%20Atlas.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brain Atlas</title>
+<link href="./Brain Atlas_files/css2" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:#f4f1eb; --card:#fffefb; --border:#dedad2;
+  --text:#1c1917; --muted:#78716c; --faint:#edeae3; --dashed:#c5bfb6;
+}
+body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+nav {
+  background:var(--card); border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:1.5rem;
+  padding:0 2rem; height:54px; position:sticky; top:0; z-index:50;
+}
+.logo { font-family:'Lora',serif; font-size:1.1rem; }
+.logo em { color:var(--muted); }
+.nav-tabs { display:flex; gap:4px; }
+.tab {
+  border:none; background:none; cursor:pointer;
+  font-family:'Inter',sans-serif; font-size:0.78rem; font-weight:500;
+  padding:6px 14px; border-radius:6px; color:var(--muted);
+  letter-spacing:0.04em; text-transform:uppercase;
+  transition:background 0.15s,color 0.15s;
+}
+.tab:hover { background:var(--faint); color:var(--text); }
+.tab.on { background:var(--text); color:#fff; }
+
+.page { display:none; }
+.page.on { display:block; }
+
+.wrap { max-width:1000px; margin:0 auto; padding:2.5rem 2rem; }
+h1 { font-family:'Lora',serif; font-size:1.9rem; font-weight:400; margin-bottom:0.3rem; }
+.sub { font-size:0.83rem; color:var(--muted); margin-bottom:2rem; }
+
+.btn-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:2rem; }
+.rbtn {
+  border:none; border-radius:10px; padding:12px 14px;
+  cursor:pointer; font-family:'Inter',sans-serif;
+  font-weight:600; font-size:0.82rem;
+  display:flex; align-items:center; gap:8px;
+  transition:transform 0.12s,box-shadow 0.12s; text-align:left;
+}
+.rbtn:hover { transform:translateY(-2px); box-shadow:0 5px 16px rgba(0,0,0,0.13); }
+.rbtn .dot { width:9px; height:9px; border-radius:50%; background:currentColor; flex-shrink:0; }
+.r-th { background:#dbeafe; color:#1d4ed8; }
+.r-hy { background:#ede9fe; color:#6d28d9; }
+.r-lc { background:#d1fae5; color:#065f46; }
+.r-bl { background:#fef3c7; color:#92400e; }
+.r-cb { background:#fce7f3; color:#9d174d; }
+.r-in { background:#e0f2fe; color:#075985; }
+.r-sc { background:#fef9c3; color:#713f12; }
+
+/* ── FLOWCHART ── */
+.flow-box {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:12px; padding:2rem 1.5rem 1.5rem; margin-bottom:2rem;
+}
+.flow-title { font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:0.5rem; }
+.flow-hint { font-size:0.72rem; color:var(--muted); margin-bottom:1.25rem; opacity:0.7; }
+
+/* The SVG diagram container */
+#flowchart-wrap {
+  position:relative; width:100%; overflow-x:auto;
+}
+#flowchart-svg {
+  display:block; margin:0 auto;
+}
+
+/* clickable arrow hit area */
+.arrow-hit {
+  cursor:pointer;
+  stroke:transparent;
+  stroke-width:12;
+  fill:none;
+}
+.arrow-line {
+  fill:none;
+  stroke:#94a3b8;
+  stroke-width:2;
+  marker-end:url(#arr);
+  pointer-events:none;
+  transition:stroke 0.15s;
+}
+.arrow-group:hover .arrow-line { stroke:#1d4ed8; }
+.arrow-label-bg { fill:var(--card); stroke:var(--border); stroke-width:1; rx:4; }
+.arrow-label-text { font-family:Inter,sans-serif; font-size:10px; fill:var(--muted); text-anchor:middle; pointer-events:none; }
+
+/* Arrow info popup */
+#arrow-info {
+  display:none; position:fixed; z-index:300;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:10px; padding:14px 16px; max-width:280px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.12);
+  font-size:0.82rem; line-height:1.55;
+}
+#arrow-info .ai-title { font-family:'Lora',serif; font-size:1rem; font-weight:600; margin-bottom:4px; }
+#arrow-info .ai-desc { color:var(--muted); font-size:0.79rem; }
+#arrow-info .ai-close {
+  position:absolute; top:8px; right:8px;
+  width:22px; height:22px; border-radius:50%;
+  border:none; background:var(--faint); cursor:pointer;
+  font-size:12px; color:var(--muted); line-height:22px; text-align:center;
+}
+
+/* ── MODALS ── */
+.overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(15,12,8,0.5);
+  z-index:200; align-items:center; justify-content:center; padding:1.5rem;
+}
+.overlay.open { display:flex; }
+.modal {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:16px; width:100%; max-width:680px;
+  max-height:88vh; overflow-y:auto;
+  padding:2rem; position:relative;
+  animation:fadein 0.18s ease;
+}
+@keyframes fadein { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+.mclose {
+  position:absolute; top:14px; right:14px;
+  width:28px; height:28px; border-radius:50%;
+  border:none; background:var(--faint); cursor:pointer;
+  font-size:15px; color:var(--muted); line-height:28px; text-align:center;
+}
+.mclose:hover { background:var(--border); }
+.m-bar { height:4px; border-radius:2px; margin-bottom:1.2rem; }
+.m-title { font-family:'Lora',serif; font-size:1.5rem; font-weight:400; margin-bottom:3px; }
+.m-unit { font-size:0.74rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.07em; margin-bottom:1.5rem; }
+
+.slabel {
+  font-size:0.66rem; font-weight:600; text-transform:uppercase;
+  letter-spacing:0.1em; color:var(--muted);
+  display:flex; align-items:center; gap:8px;
+  margin-bottom:8px; margin-top:20px;
+}
+.slabel::after { content:''; flex:1; height:1px; background:var(--border); }
+
+.ph {
+  background:var(--faint); border:1.5px dashed var(--dashed);
+  border-radius:8px; padding:12px 14px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:0.8rem; color:var(--muted); line-height:1.6;
+}
+.ph-tag {
+  display:block; font-size:0.62rem; font-weight:600;
+  text-transform:uppercase; letter-spacing:0.1em;
+  color:var(--dashed); margin-bottom:5px;
+}
+.conn-list { display:flex; flex-direction:column; gap:8px; }
+.conn { background:var(--faint); border-radius:8px; padding:11px 13px; font-size:0.82rem; line-height:1.55; }
+.conn-num { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+.conn-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:6px; }
+.conn-field { background:var(--card); border:1.5px dashed var(--dashed); border-radius:6px; padding:7px 10px; }
+.conn-field .ph-tag { margin-bottom:3px; }
+.conn-field p { font-family:'JetBrains Mono',monospace; font-size:0.76rem; color:var(--muted); }
+.conn-desc { background:var(--card); border:1.5px dashed var(--dashed); border-radius:6px; padding:7px 10px; }
+.conn-desc p { font-family:'JetBrains Mono',monospace; font-size:0.76rem; color:var(--muted); line-height:1.5; }
+
+.img-ph {
+  border:1.5px dashed var(--dashed); border-radius:8px;
+  background:var(--faint); min-height:160px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:6px; position:relative; overflow:hidden;
+}
+.img-ph-icon { font-size:2rem; opacity:0.2; }
+.img-ph-txt { font-size:0.75rem; color:var(--muted); opacity:0.7; }
+.img-ph input {
+  position:absolute; bottom:0; left:0; right:0;
+  border:none; border-top:1px solid var(--border);
+  background:rgba(255,255,255,0.92);
+  padding:7px 10px; font-family:'JetBrains Mono',monospace;
+  font-size:0.73rem; color:var(--muted); outline:none;
+}
+.img-ph img { width:100%; height:100%; object-fit:scale-down; position:absolute; inset:0; display:none; }
+
+/* ── CITED PAGE ── */
+.cited-wrap { max-width:800px; margin:0 auto; padding:2.5rem 2rem; }
+.csection { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1.5rem; margin-bottom:1.25rem; }
+.csection h2 { font-family:'Lora',serif; font-size:1.15rem; font-weight:400; padding-bottom:10px; border-bottom:1px solid var(--border); margin-bottom:1rem; }
+.cite-entry {
+  background:var(--faint); border:1.5px dashed var(--dashed);
+  border-radius:8px; padding:10px 13px; margin-bottom:8px;
+  font-family:'JetBrains Mono',monospace; font-size:0.78rem; color:var(--muted); line-height:1.6;
+}
+.cite-entry .ph-tag { color:var(--dashed); font-size:0.6rem; margin-bottom:4px; }
+.add-btn {
+  width:100%; background:none; border:1.5px dashed var(--dashed);
+  border-radius:8px; padding:9px; cursor:pointer;
+  font-size:0.79rem; color:var(--muted); font-family:'Inter',sans-serif;
+  transition:border-color 0.15s,background 0.15s;
+}
+.add-btn:hover { border-color:var(--text); background:var(--faint); }
+.ai-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.ai-card { background:var(--faint); border:1.5px dashed var(--dashed); border-radius:8px; padding:11px 13px; }
+.ai-card .ph-tag { color:var(--dashed); font-size:0.6rem; margin-bottom:4px; }
+.ai-card p { font-family:'JetBrains Mono',monospace; font-size:0.78rem; color:var(--muted); line-height:1.5; }
+.member-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; }
+.member-card { background:var(--faint); border:1.5px dashed var(--dashed); border-radius:8px; padding:11px 13px; }
+.member-card .ph-tag { color:var(--dashed); font-size:0.6rem; margin-bottom:4px; }
+.member-card p { font-family:'JetBrains Mono',monospace; font-size:0.78rem; color:var(--muted); line-height:1.5; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Brain <em>Atlas</em></div>
+  <div class="nav-tabs">
+    <button class="tab on" onclick="goPage(&#39;atlas&#39;,this)">Atlas</button>
+    <button class="tab" onclick="goPage(&#39;cited&#39;,this)">Works Cited &amp; AI Usage</button>
+  </div>
+</nav>
+
+<!-- ══════════════════ PAGE 1: ATLAS ══════════════════ -->
+<div id="pg-atlas" class="page on">
+<div class="wrap">
+  <h1>Brain Regions Atlas</h1>
+  <p class="sub">Click any colored button or diagram box to open the full region card.</p>
+
+  <!-- BUTTONS — 7 total, last one spans full row via grid -->
+  <div class="btn-grid">
+    <button class="rbtn r-th" onclick="openModal(&#39;mo-th&#39;)"><span class="dot"></span>Thalamus</button>
+    <button class="rbtn r-hy" onclick="openModal(&#39;mo-hy&#39;)"><span class="dot"></span>Orbitofrontal Cortex</button>
+    <button class="rbtn r-lc" onclick="openModal(&#39;mo-lc&#39;)"><span class="dot"></span>Locus Coeruleus</button>
+    <button class="rbtn r-bl" onclick="openModal(&#39;mo-bl&#39;)"><span class="dot"></span>Basolateral Amygdala</button>
+    <button class="rbtn r-cb" onclick="openModal(&#39;mo-cb&#39;)"><span class="dot"></span>Cerebellar Cortex &amp; Purkinje Cells</button>
+    <button class="rbtn r-in" onclick="openModal(&#39;mo-in&#39;)"><span class="dot"></span>Insular Cortex</button>
+    <button class="rbtn r-sc" onclick="openModal(&#39;mo-sc&#39;)" style="grid-column:1/-1;max-width:340px;"><span class="dot"></span>Suprachiasmatic Nucleus</button>
+  </div>
+
+  <!-- FLOWCHART -->
+  <div class="flow-box">
+    <div class="flow-title">Connection Diagram</div>
+    <div class="flow-hint">Click any region box to open its card • Click an arrow to see the connection label</div>
+
+    <div id="flowchart-wrap">
+      <!--
+        Layout (SVG 780 x 440):
+        Row 1:  SCN(90,60)   Thalamus(310,60)   Locus Coeruleus(560,60)
+        Row 2:  Hypothalamus(90,230)  BLA(310,230)  Cerebellar(560,230)
+        Row 3:  (empty)       Insular(310,390)   (empty)
+
+        Node boxes are 140w x 60h, centered on those coords.
+        Arrows:
+          SCN → Thalamus       (Fast Pathway)
+          Thalamus → BLA       (Fast Pathway)
+          Insular → BLA        (Insular → Amygdala)
+      -->
+      <svg id="flowchart-svg" viewBox="0 0 780 440" width="780" style="max-width:100%;">
+        <defs>
+          <marker id="arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+            <polygon points="0 0, 9 3.5, 0 7" fill="#94a3b8"></polygon>
+          </marker>
+          <marker id="arr-h" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+            <polygon points="0 0, 9 3.5, 0 7" fill="#1d4ed8"></polygon>
+          </marker>
+        </defs>
+
+        <!-- ── ARROWS (drawn first so nodes appear on top) ── -->
+
+        <!-- Arrow 1: SCN → Thalamus (Fast Pathway) -->
+        <!-- SCN node right edge: 90+70=160, y=60. Thalamus left edge: 310-70=240, y=60 -->
+        <g class="arrow-group" onclick="showArrowInfo(event,&#39;SCN → Thalamus&#39;,&#39;Fast Pathway: The suprachiasmatic nucleus sends circadian timing signals to the thalamus, influencing arousal and the timing of sensory relay.&#39;)">
+          <path class="arrow-hit" d="M 165,60 L 235,60"></path>
+          <path class="arrow-line" d="M 165,60 L 235,60"></path>
+          <!-- midpoint label -->
+          
+          
+        </g>
+
+        <!-- Arrow 2: Thalamus → BLA (Fast Pathway) -->
+        <!-- Thalamus bottom center: 310, 60+30=90. BLA top center: 310, 230-30=200 -->
+        <g class="arrow-group" onclick="showArrowInfo(event,&#39;Thalamus → Basolateral Amygdala&#39;,&#39;Fast Pathway: The thalamus sends rapid, coarse sensory information directly to the BLA, enabling a quick fear response before cortical processing is complete.&#39;)">
+          <path class="arrow-hit" d="M 310,95 L 310,195"></path>
+          <path class="arrow-line" d="M 310,95 L 310,195"></path>
+          
+          
+        </g>
+
+        <!-- Arrow 3: Insular Cortex → BLA -->
+        <!-- Insular center: 310,390. Top of insular: 310,360. BLA bottom center: 310,260 -->
+        <!-- Let's curve it: Insular left edge (310-70=240,390) → BLA bottom-left area (240,260) -->
+        <g class="arrow-group" onclick="showArrowInfo(event,&#39;Insular Cortex → Basolateral Amygdala&#39;,&#39;The insular cortex sends interoceptive and aversive signals to the amygdala, contributing to the formation of emotional and fear-related memories.&#39;)">
+          <path class="arrow-hit" d="M 260,362 C 220,320 220,280 260,262"></path>
+          <path class="arrow-line" d="M 260,362 C 220,320 220,280 260,262"></path>
+          
+          
+          
+        </g>
+
+        <!-- ── REGION NODES ── -->
+
+        <!-- SCN — row 1, col 1 -->
+        <g onclick="openModal(&#39;mo-sc&#39;)" style="cursor:pointer;">
+          <rect x="20" y="30" width="140" height="60" rx="10" fill="#fef9c3" stroke="#fde047" stroke-width="1.5"></rect>
+          <text x="90" y="55" text-anchor="middle" font-family="Lora,serif" font-size="12" fill="#713f12" font-weight="600">Suprachiasmatic</text>
+          <text x="90" y="71" text-anchor="middle" font-family="Lora,serif" font-size="12" fill="#713f12" font-weight="600">Nucleus</text>
+          <text x="90" y="85" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#92400e" opacity="0.75">2 connections</text>
+        </g>
+
+        <!-- Thalamus — row 1, col 2 -->
+        <g onclick="openModal(&#39;mo-th&#39;)" style="cursor:pointer;">
+          <rect x="240" y="30" width="140" height="60" rx="10" fill="#dbeafe" stroke="#93c5fd" stroke-width="1.5"></rect>
+          <text x="310" y="63" text-anchor="middle" font-family="Lora,serif" font-size="13" fill="#1d4ed8" font-weight="600">Thalamus</text>
+          <text x="310" y="80" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#1d4ed8" opacity="0.75">2 connections</text>
+        </g>
+
+        <!-- Locus Coeruleus — row 1, col 3 -->
+        <g onclick="openModal(&#39;mo-lc&#39;)" style="cursor:pointer;">
+          <rect x="490" y="30" width="140" height="60" rx="10" fill="#d1fae5" stroke="#6ee7b7" stroke-width="1.5"></rect>
+          <text x="560" y="57" text-anchor="middle" font-family="Lora,serif" font-size="12" fill="#065f46" font-weight="600">Locus</text>
+          <text x="560" y="71" text-anchor="middle" font-family="Lora,serif" font-size="12" fill="#065f46" font-weight="600">Coeruleus</text>
+          <text x="560" y="85" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#065f46" opacity="0.75">2 connections</text>
+        </g>
+
+        <!-- Hypothalamus — row 2, col 1 -->
+        <g onclick="openModal(&#39;mo-hy&#39;)" style="cursor:pointer;">
+          <rect x="20" y="200" width="140" height="60" rx="10" fill="#ede9fe" stroke="#c4b5fd" stroke-width="1.5"></rect>
+          <text x="90" y="233" text-anchor="middle" font-family="Lora,serif" font-size="12" fill="#6d28d9" font-weight="600">Orbitofrontal Cortex</text>
+          <text x="90" y="250" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#6d28d9" opacity="0.75">2 connections</text>
+        </g>
+
+        <!-- BLA — row 2, col 2 -->
+        <g onclick="openModal(&#39;mo-bl&#39;)" style="cursor:pointer;">
+          <rect x="240" y="200" width="140" height="60" rx="10" fill="#fef3c7" stroke="#fcd34d" stroke-width="1.5"></rect>
+          <text x="310" y="224" text-anchor="middle" font-family="Lora,serif" font-size="11" fill="#92400e" font-weight="600">Basolateral</text>
+          <text x="310" y="238" text-anchor="middle" font-family="Lora,serif" font-size="11" fill="#92400e" font-weight="600">Amygdala</text>
+          <text x="310" y="253" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#92400e" opacity="0.75">3 connections</text>
+        </g>
+
+        <!-- Cerebellar — row 2, col 3 -->
+        <g onclick="openModal(&#39;mo-cb&#39;)" style="cursor:pointer;">
+          <rect x="490" y="200" width="140" height="60" rx="10" fill="#fce7f3" stroke="#f9a8d4" stroke-width="1.5"></rect>
+          <text x="560" y="224" text-anchor="middle" font-family="Lora,serif" font-size="11" fill="#9d174d" font-weight="600">Cerebellar Cortex</text>
+          <text x="560" y="238" text-anchor="middle" font-family="Lora,serif" font-size="10.5" fill="#9d174d" font-weight="600">&amp; Purkinje Cells</text>
+          <text x="560" y="253" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#9d174d" opacity="0.75">3 connections</text>
+        </g>
+
+        <!-- Insular — row 3, col 2 (centered) -->
+        <g onclick="openModal(&#39;mo-in&#39;)" style="cursor:pointer;">
+          <rect x="240" y="360" width="140" height="60" rx="10" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="1.5"></rect>
+          <text x="310" y="390" text-anchor="middle" font-family="Lora,serif" font-size="12" fill="#075985" font-weight="600">Insular</text>
+          <text x="310" y="405" text-anchor="middle" font-family="Lora,serif" font-size="12" fill="#075985" font-weight="600">Cortex</text>
+          <text x="310" y="420" text-anchor="middle" font-family="Inter,sans-serif" font-size="9.5" fill="#075985" opacity="0.75">2 connections</text>
+        </g>
+
+      </svg>
+    </div><!-- /flowchart-wrap -->
+
+    <!-- Arrow info tooltip -->
+    <div id="arrow-info" style="display: none; left: 557px; top: 352px;">
+      <button class="ai-close" onclick="document.getElementById(&#39;arrow-info&#39;).style.display=&#39;none&#39;">x</button>
+      <div class="ai-title" id="ai-title">SCN → Thalamus</div>
+      <div class="ai-desc" id="ai-desc">Fast Pathway: The suprachiasmatic nucleus sends circadian timing signals to the thalamus, influencing arousal and the timing of sensory relay.</div>
+    </div>
+
+  </div><!-- /flow-box -->
+
+</div><!-- /wrap -->
+</div><!-- /pg-atlas -->
+
+<!-- ══════════════════ PAGE 2: CITED ══════════════════ -->
+<div id="pg-cited" class="page">
+<div class="cited-wrap">
+  <h1>Works Cited &amp; AI Usage</h1>
+  <p class="sub">Fill in each dashed box with your citation, AI disclosure, or contribution details.</p>
+
+  <div class="csection">
+    <h2>References</h2>
+    <div class="cite-entry">
+      <span class="ph-tag">Citation 1 — Textbook / Primary Source</span>
+      Author(s). (Year). Title of work. Publisher. DOI or URL if applicable.
+    </div>
+    <div class="cite-entry">
+      <span class="ph-tag">Citation 2 — Class Notes / Lecture</span>
+      Instructor Last, F. (Year, Month Day). Lecture title [Lecture notes]. Course Name, University.
+    </div>
+    <div class="cite-entry">
+      <span class="ph-tag">Citation 3 — Study / Experiment Used as Evidence</span>
+      Author(s). (Year). Title of study. Journal Name, Vol(Issue), pages. https://doi.org/xxx
+    </div>
+    <div class="cite-entry">
+      <span class="ph-tag">Citation 4 — Online Resource</span>
+      Website or Author. (Year). Page title. Site Name. Retrieved from URL.
+    </div>
+    <div class="cite-entry">
+      <span class="ph-tag">Citation 5 — Additional Source</span>
+      Replace this line with your citation.
+    </div>
+    <div class="cite-entry">
+      <span class="ph-tag">Citation 6 — Additional Source</span>
+      Replace this line with your citation.
+    </div>
+    <button class="add-btn" onclick="addCite()">+ Add another citation</button>
+  </div>
+
+  <div class="csection">
+    <h2>AI Usage Statement</h2>
+    <p style="font-size:0.82rem;color:var(--muted);line-height:1.6;margin-bottom:1rem;">Per course policy, all AI tool use must be disclosed. Fill in each field below.</p>
+    <div class="ai-grid">
+      <div class="ai-card">
+        <span class="ph-tag">AI Tool Name and Version</span>
+        <p>e.g. Claude Sonnet 4 (Anthropic, 2025)</p>
+      </div>
+      <div class="ai-card">
+        <span class="ph-tag">How It Was Used</span>
+        <p>e.g. Drafted initial region descriptions; reviewed and edited by students.</p>
+      </div>
+      <div class="ai-card">
+        <span class="ph-tag">Extent of Student Involvement</span>
+        <p>e.g. All factual claims verified against class notes; AI output substantially revised.</p>
+      </div>
+      <div class="ai-card">
+        <span class="ph-tag">Additional AI Tool (if any)</span>
+        <p>e.g. None / or describe second tool here.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="csection">
+    <h2>Process Summary</h2>
+    <p style="font-size:0.82rem;color:var(--muted);line-height:1.6;margin-bottom:1rem;">Who did what? Fulfills the Process Summary rubric item (5 pts).</p>
+    <div class="member-grid">
+      <div class="member-card">
+        <span class="ph-tag">Group Member 1 Name</span>
+        <p>Regions: [ list ] -- Tasks: [ e.g. diagram, BLA connections ]</p>
+      </div>
+      <div class="member-card">
+        <span class="ph-tag">Group Member 2 Name</span>
+        <p>Regions: [ list ] -- Tasks: [ e.g. Thalamus region card ]</p>
+      </div>
+      <div class="member-card">
+        <span class="ph-tag">Group Member 3 Name (if applicable)</span>
+        <p>Regions: [ list ] -- Tasks: [ e.g. editing, citations ]</p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODALS
+     ══════════════════════════════════════ -->
+
+<!-- THALAMUS -->
+<div class="overlay" id="mo-th" onclick="closeIfBg(event,this)">
+<div class="modal">
+  <button class="mclose" onclick="closeModal(&#39;mo-th&#39;)">x</button>
+  <div class="m-bar" style="background:#1d4ed8"></div>
+  <div class="m-title">Thalamus</div>
+  <div class="m-unit">Unit 8</div>
+
+  <div class="slabel">What It Does</div>
+  <div class="ph">
+    
+The thalamus is the primary pathway by which sensory information enters the brain. In regard to learning, it is a critical step in fear response pathways, as it transmits bodily sensations to the amygdala from their respective sensory areas. According to Rodriguez's team, the thalamus can do this in two speeds. The faster speed directly conveys sensory information from the thalamus to the amygdala, and the slower speed pathway sends sensory information from the thalamus to the sensory cortex before going to the amygdala.
+
+This results in the information being sent to the amygdala having varying quality. The fast pathway sends more crude information to the amygdala, and the slower pathway sends more refined information. This sometimes results in an initial misjudgment of perception, that is then corrected when information from the slower pathway better identifies what is being observed.
+  </div>
+
+  <div class="slabel">Evidence Example</div>
+  <div class="ph">
+    <span class="ph-tag">Fill in: experiment or class example, then explain what it suggests about the mechanism. Add your citation.</span>
+    Replace this with your evidence. Format: "[Study/example] demonstrates [finding], suggesting that the thalamus contributes to [function] because [mechanism]. (Author, Year)"
+  </div>
+
+  <div class="slabel">Source</div>
+  <div class="ph">
+    In-Class Slides (Unit 8 Lecture 2) and​ Rodrigues, S. M., LeDoux, J. E., &amp; Sapolsky, R. M. (2009). The influence of stress hormones on fear circuitry. Annual Review of Neuroscience, 32(1), 289–313. https://doi.org/10.1146/annurev.neuro.051508.135620 ​
+https://cdn2.psychologytoday.com/assets/attachments/37382/rodrigues-ledoux-sapolsky-arn-2009.pdf​</div>
+
+  <div class="slabel">Image / Diagram</div>
+  <div class="img-ph">
+    <img id="img-th" alt="Thalamus" onload="this.style.display=&#39;block&#39;" onerror="this.style.display=&#39;none&#39;" src="./Brain Atlas_files/thalamus-damage.png" style="display: block;">
+    
+    
+    <input type="text" placeholder="https://example.com/your-image.jpg" oninput="loadImg(&#39;img-th&#39;,this.value)">
+  </div>
+
+  <div class="slabel">Key Connections (2 required)</div>
+  <div class="conn-list">
+    <div class="conn">
+      <div class="conn-num" style="color:#1d4ed8">Connection 1</div>
+      <div class="conn-row">
+        <div class="conn-field"><span class="ph-tag">Connected Region</span><p>Basolateral Amygdala</p></div>
+        <div class="conn-field"><span class="ph-tag">Input / Output / Both</span><p>Output</p></div>
+      </div>
+      <div class="conn-desc"><span class="ph-tag">Description -- what is sent or received, and why it matters for learning</span><p>Connects directly for the fast pathway</p></div>
+    </div>
+    <div class="conn">
+      <div class="conn-num" style="color:#1d4ed8">Connection 2</div>
+      <div class="conn-row">
+        <div class="conn-field"><span class="ph-tag">Connected Region</span><p>Sensory Cortex</p></div>
+        <div class="conn-field"><span class="ph-tag">Input / Output / Both</span><p>Output</p></div>
+      </div>
+      <div class="conn-desc"><span class="ph-tag">Description -- what is sent or received, and why it matters for learning</span><p>Connects first through the Seonsory Cortex before connecting to the BLA for the slow pathway</p></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- HYPOTHALAMUS -->
+<div class="overlay" id="mo-hy" onclick="closeIfBg(event,this)">
+<div class="modal">
+  <button class="mclose" onclick="closeModal(&#39;mo-hy&#39;)">x</button>
+  <div class="m-bar" style="background:#6d28d9"></div>
+  <div class="m-title">Orbitofrontal Cortex</div>
+  <div class="m-unit">Unit 5</div>
+
+  <div class="slabel">What It Does</div>
+  <div class="ph">
+    
+    The orbitofrontal cortex’s (OFC) main role in learning and memory lies in operant conditioning. In conjunction with the dorsal striatum, which pairs a discriminative stimulus and a response, the OFC links that response to a predicted outcome. Therefore, the dorsal striatum and the OFC form the foundation for operant conditioning in the brain: The dorsal striatum links the stimulus to a response, and that response is then predicted by the OFC, which in turn helps develop an idea of what we think is going to happen. <br><br>
+    
+The OFC is also important in reward pathways in the brain, specifically in deciding which reward to go with. According to the Unit 5 Lesson 4 slide deck, which draws on an experiment outlined by Gluck et al., rats with lesions to the OFC chose to take smaller rewards that came without delay, suggesting that the OFC is useful in deciding which reward system is better to take. This suggests that the OFC is linked to reward pathways, for which the circuitry is outlined a few slides later. The OFC is shown to interact with the Ventral Tegmental Area (VTA) and the Substantia Niagra Pars Compacta (SNC), which are important in dopamine signaling in the brain. This ultimately suggests that the OFC is critical in moderating dopamine production and signaling in the brain and is a critical part of the brain’s reward pathway.​
+  </div>
+
+  <div class="slabel">Evidence Example</div>
+  <div class="ph">
+    <span class="ph-tag">Fill in: experiment or class example, then explain what it suggests about the mechanism. Add your citation.</span>
+    Replace this with your evidence. Format: "[Study/example] demonstrates [finding], suggesting that the hypothalamus contributes to [function] because [mechanism]. (Author, Year)"
+  </div>
+
+  <div class="slabel">Source</div>
+  <div class="ph">
+    
+    In Class Slides (specifically the Unit 5 Lesson 4 slide deck)<br>
+    Gluck et al., Learning and Memory, 4e (accessed via slide deck)
+  </div>
+
+  <div class="slabel">Image / Diagram</div>
+  <div class="img-ph">
+    <img id="img-hy" alt="Hypothalamus" onload="this.style.display=&#39;block&#39;" onerror="this.style.display=&#39;none&#39;" src="./Brain Atlas_files/hypothalamus-damage-1.png" style="display: block;">
+    
+    
+    <input type="text" placeholder="https://example.com/your-image.jpg" oninput="loadImg(&#39;img-hy&#39;,this.value)">
+  </div>
+
+  <div class="slabel">Key Connections (2 required)</div>
+  <div class="conn-list">
+    <div class="conn">
+      <div class="conn-num" style="color:#6d28d9">Connection 1</div>
+      <div class="conn-row">
+        <div class="conn-field"><span class="ph-tag">Connected Region</span><p>Dorsal Striatum</p></div>
+        <div class="conn-field"><span class="ph-tag">Input / Output / Both</span><p>Input</p></div>
+      </div>
+      <div class="conn-desc"><span class="ph-tag">Description -- what is sent or received, and why it matters for learning</span><p>[ Fill in the description of this connection. ]</p></div>
+    </div>
+    <div class="conn">
+      <div class="conn-num" style="color:#6d28d9">Connection 2</div>
+      <div class="conn-row">
+        <div class="conn-field"><span class="ph-tag">Connected Region</span><p>VTA/SNC</p></div>
+        <div class="conn-field"><span class="ph-tag">Input / Output / Both</span><p>Both</p></div>
+      </div>
+      <div class="conn-desc"><span class="ph-tag">Description -- what is sent or received, and why it matters for learning</span><p>[ Fill in the description of this connection. ]</p></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- LOCUS COERULEUS -->
+<div class="overlay" id="mo-lc" onclick="closeIfBg(event,this)">
+<div class="modal">
+  <button class="mclose" onclick="closeModal(&#39;mo-lc&#39;)">x</button>
+  <div class="m-bar" style="background:#065f46"></div>
+  <div class="m-title">Locus Coeruleus</div>
+  <div class="m-unit">Unit 8</div>
+
+  <div class="slabel">What It Does</div>
+  <div class="ph">
+    
+The locus coerulus is a region of the brainstem, specifically the pons, which releases norephinephrine, a hormone which drives our bodies "fight or flight response". Through the release of NE, activity of the locus coerulus can aid in learning by supporting formation of new memories and strengthening our existing memories. Specifically, the locus coerulus helps us prioritize the encoding of relevant inputs and disregard irrelevant ones.
+<br><br>
+Evidence of the role of the locus coerulus in memory formation and strengthening of encoding processes can be found in a 2018 study, "Locus Coeruleus Activity Strengthens Prioritized Memories Under Arousal", in which participants were asked to perform a "monetary incentive encoding task" inside of an MRI scanner. In half the trials, a "threat of punishment" was used to induce arousal. Findings showed that in the trials with the "threat of punishment", memory was successfully increased for goal-relevant scenes but not for irrelevant other details.
+  </div>
+
+  <div class="slabel">Evidence Example</div>
+  <div class="ph">
+    <span class="ph-tag">Fill in: experiment or class example, then explain what it suggests about the mechanism. Add your citation.</span>
+    Replace this with your evidence. Format: "[Study/example] demonstrates [finding], suggesting that the LC contributes to [function] because [mechanism]. (Author, Year)"
+  </div>
+
+  <div class="slabel">Source</div>
+  <div class="ph">
+    In Class Slides (specifically the Unit 8 slide deck)
+
+<br><br><br>
+
+Gluck et al., Learning and Memory, 4e (accessed via slide deck)
+
+<br>
+
+Khroud NK, Reddy V, Saadabadi A. Neuroanatomy, Locus Coeruleus. [Updated 2022 Oct 31]. In: StatPearls [Internet]. Treasure Island (FL): StatPearls Publishing; 2026 Jan-. Available from: https://www.ncbi.nlm.nih.gov/books/NBK513270/ 
+
+<br>    
+    
+Clewett DV, Huang R, Velasco R, Lee TH, Mather M. Locus Coeruleus Activity Strengthens Prioritized Memories Under Arousal. J Neurosci. 2018 Feb 7;38(6):1558-1574. doi: 10.1523/JNEUROSCI.2097-17.2017. Epub 2018 Jan 4. PMID: 29301874; PMCID: PMC5815354.</div>
+
+  <div class="slabel">Image / Diagram</div>
+  <div class="img-ph">
+    <img id="img-lc" alt="Locus Coeruleus" onload="this.style.display=&#39;block&#39;" onerror="this.style.display=&#39;none&#39;" style="display: block;" src="./Brain Atlas_files/locus_coeruleus.jpg">
+    
+    
+    <input type="text" placeholder="https://example.com/your-image.jpg" oninput="loadImg(&#39;img-lc&#39;,this.value)">
+  </div>
+
+  <div class="slabel">Key Connections (2 required)</div>
+  <div class="conn-list">
+    <div class="conn">
+      <div class="conn-num" style="color:#065f46">Connection 1</div>
+      <div class="conn-row">
+        <div class="conn-field"><span class="ph-tag">Connected Region</span><p>[ Fill in region name ]</p></div>
+        <div class="conn-field"><span class="ph-tag">Input / Output / Both</span><p>[ Fill in direction ]</p></div>
+      </div>
+      <div class="conn-desc"><span class="ph-tag">Description -- what is sent or received, and why it matters for learning</span><p>[ Fill in the description of this connection. ]</p></div>
+    </div>
+    <div class="conn">
+      <div class="conn-num" style="color:#065f46">Connection 2</div>
+      <div class="conn-row">
+        <div class="conn-field"><span class="ph-tag">Connected Region</span><p>[ Fill in region name ]</p></div>
+        <div class="conn-field"><span class="ph-tag">Input / Output / Both</span><p>[ Fill in direction ]</p></div>
+      </div>
+      <div class="conn-desc"><span class="ph-tag">Description -- what is sent or received, and why it matters for learning</span><p>[ Fill in the description of this connection. ]</p></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- BASOLATERAL AMYGDALA -->
+<div class="overlay" id="mo-bl" onclick="closeIfBg(event,this)">
+<div class="modal">
+  <button class="mclose" onclick="closeModal(&#39;mo-bl&#39;)">x</button>
+  <div class="m-bar" style="background:#92400e"></div>
+  <div class="m-title">Basolateral Amygdala</div>
+  <div class="m-unit">Unit 8</div>
+
+  <div class="slabel">What It Does</div>
+  <div class="ph">
+    The basolateral amygdala is a complex consisting of three of the twelve amygdalar nuclei (lateral, basal, accessory basal) which is an incredibly important component in many neural circuits relating to learning. Firstly, BLA is a crucial intermediate in how we produce emotion via the direct and indirect pathways via the amygdala. In responding to a sensory stimulus, the thalamus sends direct projections to the BLA (direct pathway) or goes through the cortex prior to reaching the BLA, which leads to downstream motor and physiological responses (ANS activation). The BLA acts as a central hub which allows our brains to differentiate between appetitive and aversive stimuli and coordinate our differential responses to each. When we are presented with an appetitive CS, certain neurons are activated which lead to activation of the nucleus accumbens. When we are presented with an aversive stimulus, certain neurons are activated which lead to activation of the central nucleus of the amygdala (CNA). When both are presented, neurons are activated which lead to activation of the ventral hippocampus.​
+
+​</div>
+
+  <div class="slabel">Evidence Example</div>
+  <div class="ph">
+    Evidence of the role of the Basolateral Amygdala in fear conditioning can be found in a 1996 study which examined the impact the impact of lesioning the BLA on a rats ability to learn fear associations.  Rats were conditioned via the pairing of a tone with an aversive foot shock. Results found that the BLA lesions abolished conditional freezing  (used as an index of conditioned fear) to all conditioned stimuli, revealing the role of the BLA in expression of conditioned fear.</div>
+
+  <div class="slabel">Source</div>
+  <div class="ph">
+    
+    In Class Slides (specifically the Unit 8 slide deck)​
+<br>
+Gluck et al., Learning and Memory, 4e (accessed via slide deck)​
+  </div>
+
+  <div class="slabel">Image / Diagram</div>
+  <div class="img-ph">
+    <img id="img-bl" alt="Basolateral Amygdala" onload="this.style.display=&#39;block&#39;" onerror="this.style.display=&#39;none&#39;" src="./Brain Atlas_files/CNX_Psych_10_04_Amygdala.jpg" style="display: block;">
+    
+    
+    <input type="text" placeholder="https://example.com/your-image.jpg" oninput="loadImg(&#39;img-bl&#39;,this.value)">
+  </div>
+
+  <div class="slabel">Key Connections (3 required)</div>
+  <div class="conn-list">
+    <div class="conn">
+      <div class="conn-num" style="color:#92400e">Connection 1</div>
+      <div class="conn-row">
+        <div class="conn-field"><span class="ph-tag">Connected Region</span><p>[ Fill in region name ]</p></div>
+        <div class="conn-field"><span class="ph-tag">Input / Output / Both</span><p>[ Fill in direction ]</p></div>
+      </div>
+      <div class="conn-desc"><span class="ph-tag">Description -- what is sent or received, and why it matters for learning</span><p>[ Fill in the description of this connection. ]</p></div>
+    </div>
+    <div class="conn">
+      <div class="conn-num" style="color:#92400e">Connection 2</div>
+      <div class="conn-row">
+        <div class="conn-field"><span class="ph-tag">Connected Region</span><p>[ Fill in region name ]</p></div>
+        <div class="conn-field"><span class="ph-tag">Input / Output / Both</span><p>[ Fill in direction ]</p></div>
+      </div>
+      <div class="conn-desc"><span class="ph-tag">Description -- what is sent or received, and why it matters for learning</span><p>[ Fill in the description of this connection. ]</p></div>
+    </div>
+    <div class="conn">
+      <div class="conn-num" style="color:#92400e">Connection 3</div>
+      <div class="conn-row">
+        <div class="conn-field"><span class="ph-tag">Connected Region</span><p>[ Fill in region name ]</p></div>
+        <div class="conn-field"><span class="ph-tag">Input / Output / Both</span><p>[ Fill in direction ]</p></div>
+      </div>
+      <div class="conn-desc"><span class="ph-tag">Description -- what is sent or received, and why it matters for learning</span><p>[ Fill in the description of this connection. ]</p></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- CEREBELLAR CORTEX -->
+<div class="overlay" id="mo-cb" onclick="closeIfBg(event,this)">
+<div class="modal">
+  <button class="mclose" onclick="closeModal(&#39;mo-cb&#39;)">x</button>
+  <div class="m-bar" style="background:#9d174d"></div>
+  <div class="m-title">Cerebellar Cortex &amp; Purkinje Cells</div>
+  <div class="m-unit">Motor Learning and Timing -- Unit 4</div>
+
+  <div class="slabel">What It Does</div>
+  <div class="ph">
+    <span class="ph-tag">Fill in: core function(s) in learning (~150 words). If covered in multiple units, include one function from each unit.</span>
+    Replace this with your description of the cerebellar cortex and Purkinje cells. What role do they play in motor learning, timing, and prediction error?
+  </div>
+
+  <div class="slabel">Evidence Example</div>
+  <div class="ph">
+    <span class="ph-tag">Fill in: experiment or class example, then explain what it suggests about the mechanism. Add your citation.</span>
+    Replace this with your evidence. Format: "[Study/example] demonstrates [finding], suggesting that the cerebellar cortex contributes to [function] because [mechanism]. (Author, Year)"
+  </div>
+
+  <div class="slabel">Source</div>
+  <div class="ph">
+    <span class="ph-tag">Fill in: where did your information come from? (citation, textbook, lecture notes, etc.)</span>
+    Replace this with your source(s) for the information above.
+  </div>
+
+  <div class="slabel">Image / Diagram</div>
+  <div class="img-ph">
+    <img id="img-cb" alt="Cerebellar Cortex" onload="this.style.display=&#39;block&#39;" onerror="this.style.display=&#39;none&#39;" src="./Brain Atlas_files/667d69444af4050847729cb501e5f5bef9d5b8885bf101691beaa09698257550" style="display: block;">
+    
+    
+    <input type="text" placeholder="https://example.com/your-image.jpg" oninput="loadImg(&#39;img-cb&#39;,this.value)">
+  </div>
+
+  <div class="slabel">Key Connections (3 required)</div>
+  <div class="conn-list">
+    <div class="conn">
+      <div class="conn-num" style="color:#9d174d">Connection 1</div>
+      <div class="conn-row">
+        <div class="conn-field"><span class="ph-tag">Connected Region</span><p>[ Fill in region name ]</p></div>
+        <div class="conn-field"><span class="ph-tag">Input / Output / Both</span><p>[ Fill in direction ]</p></div>
+      </div>
+      <div class="conn-desc"><span class="ph-tag">Description -- what is sent or received, and why it matters for learning</span><p>[ Fill in the description of this connection. ]</p></div>
+    </div>
+    <div class="conn">
+      <div class="conn-num" style="color:#9d174d">Connection 2</div>
+      <div class="conn-row">
+        <div class="conn-field"><span class="ph-tag">Connected Region</span><p>[ Fill in region name ]</p></div>
+        <div class="conn-field"><span class="ph-tag">Input / Output / Both</span><p>[ Fill in direction ]</p></div>
+      </div>
+      <div class="conn-desc"><span class="ph-tag">Description -- what is sent or received, and why it matters for learning</span><p>[ Fill in the description of this connection. ]</p></div>
+    </div>
+    <div class="conn">
+      <div class="conn-num" style="color:#9d174d">Connection 3</div>
+      <div class="conn-row">
+        <div class="conn-field"><span class="ph-tag">Connected Region</span><p>[ Fill in region name ]</p></div>
+        <div class="conn-field"><span class="ph-tag">Input / Output / Both</span><p>[ Fill in direction ]</p></div>
+      </div>
+      <div class="conn-desc"><span class="ph-tag">Description -- what is sent or received, and why it matters for learning</span><p>[ Fill in the description of this connection. ]</p></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- INSULAR CORTEX -->
+<div class="overlay open" id="mo-in" onclick="closeIfBg(event,this)">
+<div class="modal">
+  <button class="mclose" onclick="closeModal(&#39;mo-in&#39;)">x</button>
+  <div class="m-bar" style="background:#075985"></div>
+  <div class="m-title">Insular Cortex</div>
+  <div class="m-unit">Interoception and Aversive Learning -- Unit 5</div>
+
+  <div class="slabel">What It Does</div>
+  <div class="ph">
+    <span class="ph-tag">Fill in: core function(s) in learning (~150 words). If covered in multiple units, include one function from each unit.</span>
+    Replace this with your description of the insular cortex. What role does it play in interoception, taste aversion learning, and emotional valuation?
+  </div>
+
+  <div class="slabel">Evidence Example</div>
+  <div class="ph">
+    <span class="ph-tag">Fill in: experiment or class example, then explain what it suggests about the mechanism. Add your citation.</span>
+    Replace this with your evidence. Format: "[Study/example] demonstrates [finding], suggesting that the insular cortex contributes to [function] because [mechanism]. (Author, Year)"
+  </div>
+
+  <div class="slabel">Source</div>
+  <div class="ph">
+    <span class="ph-tag">Fill in: where did your information come from? (citation, textbook, lecture notes, etc.)</span>
+    Replace this with your source(s) for the information above.
+  </div>
+
+  <div class="slabel">Image / Diagram</div>
+  <div class="img-ph">
+    <img id="img-in" alt="Insular Cortex" onload="this.style.display=&#39;block&#39;" onerror="this.style.display=&#39;none&#39;" src="./Brain Atlas_files/DMIAPl1Cx4EOfXKpNduhw_Insula_02.png" style="display: block;">
+    
+    
+    <input type="text" placeholder="https://example.com/your-image.jpg" oninput="loadImg(&#39;img-in&#39;,this.value)">
+  </div>
+
+  <div class="slabel">Key Connections (2 required)</div>
+  <div class="conn-list">
+    <div class="conn">
+      <div class="conn-num" style="color:#075985">Connection 1</div>
+      <div class="conn-row">
+        <div class="conn-field"><span class="ph-tag">Connected Region</span><p>[ Fill in region name ]</p></div>
+        <div class="conn-field"><span class="ph-tag">Input / Output / Both</span><p>[ Fill in direction ]</p></div>
+      </div>
+      <div class="conn-desc"><span class="ph-tag">Description -- what is sent or received, and why it matters for learning</span><p>[ Fill in the description of this connection. ]</p></div>
+    </div>
+    <div class="conn">
+      <div class="conn-num" style="color:#075985">Connection 2</div>
+      <div class="conn-row">
+        <div class="conn-field"><span class="ph-tag">Connected Region</span><p>[ Fill in region name ]</p></div>
+        <div class="conn-field"><span class="ph-tag">Input / Output / Both</span><p>[ Fill in direction ]</p></div>
+      </div>
+      <div class="conn-desc"><span class="ph-tag">Description -- what is sent or received, and why it matters for learning</span><p>[ Fill in the description of this connection. ]</p></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SUPRACHIASMATIC NUCLEUS -->
+<div class="overlay" id="mo-sc" onclick="closeIfBg(event,this)">
+<div class="modal">
+  <button class="mclose" onclick="closeModal(&#39;mo-sc&#39;)">x</button>
+  <div class="m-bar" style="background:#713f12"></div>
+  <div class="m-title">Suprachiasmatic Nucleus</div>
+  <div class="m-unit">New / Expanded Region</div>
+
+  <div class="slabel">What It Does</div>
+  <div class="ph">
+    The suprachiasmatic nucleus is critical in sleep regulation, as it is largely responsible for maintaining the body’s circadian rhythm (Ma,
+2023). As such, disruptions to the suprachiasmatic nucleus can lead to circadian rhythm disruptions, ultimately resulting in sleep
+issues for individuals. According to the in-class slide deck, sleep is critical in many processes involving memories. Memories are
+”replayed” during sleep, which is believed to be an important part of memory consolidation. Furthermore, sleep is central to the
+process by which memories encoded in the hippocampus are then placed into the storage of the brain. The suprachiasmatic nucleus
+allows for this to happen on a regular schedule via moderating the circadian rhythm, ultimately moderating the body to sleep at regular
+intervals and making this storage process possible. ​</div>
+
+  <div class="slabel">Evidence Example</div>
+  <div class="ph">
+    <span class="ph-tag">Fill in: experiment or class example, then explain what it suggests about the mechanism. Add your citation.</span>Need to write</div>
+
+  <div class="slabel">Source</div>
+  <div class="ph">
+    Ma, M. A. (2023, July 24). Neuroanatomy, nucleus suprachiasmatic. StatPearls [Internet].
+https://www.ncbi.nlm.nih.gov/books/NBK546664/ ​</div>
+
+  <div class="slabel">Image / Diagram</div>
+  <div class="img-ph">
+    <img id="img-sc" alt="Suprachiasmatic Nucleus" onload="this.style.display=&#39;block&#39;" onerror="this.style.display=&#39;none&#39;" src="./Brain Atlas_files/suprachiasmatic-nucleus.jpg" style="display: block;" object-fit:"scale-down"="">
+    
+    
+    <input type="text" placeholder="Suprachiasmatic Nucleus" oninput="loadImg(&#39;img-sc&#39;,this.value)">
+  </div>
+
+  <div class="slabel">Key Connections (2 required)</div>
+  <div class="conn-list">
+    <div class="conn">
+      <div class="conn-num" style="color:#713f12">Connection 1</div>
+      <div class="conn-row">
+        <div class="conn-field"><span class="ph-tag">Connected Region</span><p>[ Fill in region name ]</p></div>
+        <div class="conn-field"><span class="ph-tag">Input / Output / Both</span><p>[ Fill in direction ]</p></div>
+      </div>
+      <div class="conn-desc"><span class="ph-tag">Description -- what is sent or received, and why it matters for learning</span><p>[ Fill in the description of this connection. ]</p></div>
+    </div>
+    <div class="conn">
+      <div class="conn-num" style="color:#713f12">Connection 2</div>
+      <div class="conn-row">
+        <div class="conn-field"><span class="ph-tag">Connected Region</span><p>[ Fill in region name ]</p></div>
+        <div class="conn-field"><span class="ph-tag">Input / Output / Both</span><p>[ Fill in direction ]</p></div>
+      </div>
+      <div class="conn-desc"><span class="ph-tag">Description -- what is sent or received, and why it matters for learning</span><p>[ Fill in the description of this connection. ]</p></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+function goPage(id, btn) {
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('on'); });
+  document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('on'); });
+  document.getElementById('pg-' + id).classList.add('on');
+  btn.classList.add('on');
+}
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+function closeIfBg(e, el) {
+  if (e.target === el) { el.classList.remove('open'); }
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.overlay.open').forEach(function(o){ o.classList.remove('open'); });
+    document.getElementById('arrow-info').style.display = 'none';
+  }
+});
+function loadImg(imgId, url) {
+  var img = document.getElementById(imgId);
+  if (!img) return;
+  if (!url || !url.trim()) { img.style.display = 'none'; return; }
+  img.src = url.trim();
+}
+var citeNum = 7;
+function addCite() {
+  var btn = document.querySelector('.add-btn');
+  var div = document.createElement('div');
+  div.className = 'cite-entry';
+  div.innerHTML = '<span class="ph-tag">Citation ' + citeNum + ' -- Additional Source</span>Replace this line with your citation.';
+  btn.parentNode.insertBefore(div, btn);
+  citeNum++;
+}
+
+/* Arrow info popup */
+function showArrowInfo(e, title, desc) {
+  e.stopPropagation();
+  var popup = document.getElementById('arrow-info');
+  document.getElementById('ai-title').innerHTML = title;
+  document.getElementById('ai-desc').textContent = desc;
+  popup.style.display = 'block';
+  /* position near click, keep on screen */
+  var x = e.clientX + 14;
+  var y = e.clientY - 10;
+  if (x + 290 > window.innerWidth) { x = e.clientX - 304; }
+  if (y + 140 > window.innerHeight) { y = e.clientY - 130; }
+  popup.style.left = x + 'px';
+  popup.style.top  = y + 'px';
+}
+document.addEventListener('click', function(e) {
+  var popup = document.getElementById('arrow-info');
+  if (popup && !popup.contains(e.target)) {
+    popup.style.display = 'none';
+  }
+});
+</script>
+
+
+</body></html>
